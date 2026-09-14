@@ -20,8 +20,14 @@ const PORT = process.env.PORT || 5001;
 // =============================================
 // MIDDLEWARE - CORS MUST BE FIRST!
 // =============================================
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:3000', 'http://localhost:3001'];
+
+console.log('🔐 CORS allowed origins:', allowedOrigins);
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
