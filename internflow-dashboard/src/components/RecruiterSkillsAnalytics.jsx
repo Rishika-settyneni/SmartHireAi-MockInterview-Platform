@@ -7,6 +7,9 @@ const RecruiterSkillsAnalytics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
   useEffect(() => {
     fetchSkillsAnalytics();
   }, []);
@@ -15,7 +18,7 @@ const RecruiterSkillsAnalytics = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/recruiter-analytics/skills-overview', {
+      const response = await fetch(`${API_URL}/api/recruiter-analytics/skills-overview`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const result = await response.json();

@@ -7,6 +7,9 @@ const RecruiterTrends = () => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('30d');
 
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
   useEffect(() => {
     fetchTrends();
   }, [timeRange]);
@@ -16,7 +19,7 @@ const RecruiterTrends = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:5001/api/recruiter-analytics/trends?timeRange=${timeRange}`,
+        `${API_URL}/api/recruiter-analytics/trends?timeRange=${timeRange}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       const result = await response.json();

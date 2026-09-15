@@ -1,4 +1,4 @@
-// internflow-dashboard/src/components/PerformanceSummary.jsx
+// src/components/PerformanceSummary.jsx
 import React, { useState, useEffect } from 'react';
 import './PerformanceSummary.css';
 
@@ -7,12 +7,15 @@ const PerformanceSummary = () => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('all');
 
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
   const fetchSummary = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:5001/api/notifications/summary?timeRange=${timeRange}`,
+        `${API_URL}/api/notifications/summary?timeRange=${timeRange}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       const data = await response.json();
@@ -132,45 +135,44 @@ const PerformanceSummary = () => {
       </div>
 
       {/* Skill Breakdown */}
-{summary.skillBreakdown && (
-  <div className="skills-section">
-    <h3>🎯 Skill Breakdown</h3>
-    <div className="skills-grid">
-      {Object.entries(summary.skillBreakdown).map(([skill, data]) => {
-        // Handle both formats: {average, count} or plain number
-        const score = typeof data === 'object' ? (data.average || 0) : (data || 0);
-        const count = typeof data === 'object' ? (data.count || 0) : 0;
-        
-        return (
-          <div key={skill} className="skill-card">
-            <div className="skill-header">
-              <span className="skill-name">
-                {skill.charAt(0).toUpperCase() + skill.slice(1)}
-              </span>
-              <span className="skill-score" style={{ color: getScoreColor(score) }}>
-                {score}%
-              </span>
-            </div>
-            <div className="progress-bar">
-              <div 
-                className="progress-fill"
-                style={{ 
-                  width: `${score}%`,
-                  background: getScoreColor(score)
-                }}
-              ></div>
-            </div>
-            {count > 0 && (
-              <div className="skill-count">
-                Based on {count} interview{count !== 1 ? 's' : ''}
-              </div>
-            )}
+      {summary.skillBreakdown && (
+        <div className="skills-section">
+          <h3>🎯 Skill Breakdown</h3>
+          <div className="skills-grid">
+            {Object.entries(summary.skillBreakdown).map(([skill, data]) => {
+              const score = typeof data === 'object' ? (data.average || 0) : (data || 0);
+              const count = typeof data === 'object' ? (data.count || 0) : 0;
+              
+              return (
+                <div key={skill} className="skill-card">
+                  <div className="skill-header">
+                    <span className="skill-name">
+                      {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                    </span>
+                    <span className="skill-score" style={{ color: getScoreColor(score) }}>
+                      {score}%
+                    </span>
+                  </div>
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill"
+                      style={{ 
+                        width: `${score}%`,
+                        background: getScoreColor(score)
+                      }}
+                    ></div>
+                  </div>
+                  {count > 0 && (
+                    <div className="skill-count">
+                      Based on {count} interview{count !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
-    </div>
-  </div>
-)}
+        </div>
+      )}
 
       {/* Recommendations */}
       {summary.recommendations && summary.recommendations.length > 0 && (

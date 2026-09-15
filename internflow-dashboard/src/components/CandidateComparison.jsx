@@ -7,6 +7,9 @@ const CandidateComparison = ({ candidateIds, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
   useEffect(() => {
     fetchComparison();
   }, [candidateIds]);
@@ -17,7 +20,7 @@ const CandidateComparison = ({ candidateIds, onClose }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/recruiter-analytics/compare', {
+      const response = await fetch(`${API_URL}/api/recruiter-analytics/compare`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

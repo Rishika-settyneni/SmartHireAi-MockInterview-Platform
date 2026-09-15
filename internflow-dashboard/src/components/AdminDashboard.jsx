@@ -1,4 +1,4 @@
-// internflow-dashboard/src/components/AdminDashboard.jsx
+// src/components/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import '../styles/AdminDashboard.css';
 
@@ -20,6 +20,9 @@ const AdminDashboard = ({ user }) => {
   const [userFilter, setUserFilter] = useState({ role: 'ALL', search: '' });
   const [timeRange, setTimeRange] = useState('30d');
 
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
   // =============================================
   // FETCHERS
   // =============================================
@@ -30,7 +33,7 @@ const AdminDashboard = ({ user }) => {
         role: userFilter.role,
         search: userFilter.search
       });
-      const response = await fetch(`http://localhost:5001/api/admin/users?${params}`, {
+      const response = await fetch(`${API_URL}/api/admin/users?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -46,7 +49,7 @@ const AdminDashboard = ({ user }) => {
   const fetchInterviewActivity = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/admin/interviews/activity', {
+      const response = await fetch(`${API_URL}/api/admin/interviews/activity`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -61,7 +64,7 @@ const AdminDashboard = ({ user }) => {
   const fetchAiPerformance = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/admin/ai-performance', {
+      const response = await fetch(`${API_URL}/api/admin/ai-performance`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -76,7 +79,7 @@ const AdminDashboard = ({ user }) => {
   const fetchSystemHealth = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/admin/system-health', {
+      const response = await fetch(`${API_URL}/api/admin/system-health`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -91,7 +94,7 @@ const AdminDashboard = ({ user }) => {
   const fetchUsageAnalytics = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/usage-analytics?timeRange=${timeRange}`, {
+      const response = await fetch(`${API_URL}/api/admin/usage-analytics?timeRange=${timeRange}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -106,7 +109,7 @@ const AdminDashboard = ({ user }) => {
   const fetchActivityLogs = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/admin/activity-logs', {
+      const response = await fetch(`${API_URL}/api/admin/activity-logs`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -145,7 +148,7 @@ const AdminDashboard = ({ user }) => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/users/${userId}/role`, {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -171,7 +174,7 @@ const AdminDashboard = ({ user }) => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

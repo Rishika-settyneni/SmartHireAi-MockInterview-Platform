@@ -1,3 +1,4 @@
+// src/components/WebcamRecorder.jsx
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import '../styles/WebcamRecorder.css';
 import { handleInterviewCompletion } from '../integrations/interviewSubmissionHandler';
@@ -34,6 +35,9 @@ const WebcamRecorder = forwardRef(({
   const timerIntervalRef = useRef(null);
   // ✅ CRITICAL: Use a ref for chunks (not React state)
   const localChunksRef = useRef([]);
+
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -80,9 +84,9 @@ const WebcamRecorder = forwardRef(({
       formData.append('recording', blob, `recording-${Date.now()}.webm`);
       formData.append('duration', duration);
 
-      console.log('📤 Sending upload request to:', `http://localhost:5001/api/recordings/upload/${interviewId}`);
+      console.log('📤 Sending upload request to:', `${API_URL}/api/recordings/upload/${interviewId}`);
       
-      const response = await fetch(`http://localhost:5001/api/recordings/upload/${interviewId}`, {
+      const response = await fetch(`${API_URL}/api/recordings/upload/${interviewId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -111,7 +115,7 @@ const WebcamRecorder = forwardRef(({
     }
   };
 
-  // ✅ NEW: Handle interview scoring
+  // Handle interview scoring
   const scoreInterview = async () => {
     if (!interviewId || !qaPairs || qaPairs.length === 0) {
       console.warn('⚠️ Cannot score interview: missing ID or Q&A pairs');
@@ -135,7 +139,7 @@ const WebcamRecorder = forwardRef(({
         qaPairs,
         domain,
         interviewType,
-        null // Optional behavioral data
+        null
       );
 
       if (result.success) {
@@ -207,7 +211,7 @@ const WebcamRecorder = forwardRef(({
   };
 
   // =============================================
-  // START RECORDING - FIXED WITH LOCAL CHUNKS
+  // START RECORDING
   // =============================================
   const startRecording = () => {
     if (!stream) {
@@ -215,7 +219,6 @@ const WebcamRecorder = forwardRef(({
       return;
     }
     
-    // Check if stream has tracks
     const videoTracks = stream.getVideoTracks();
     const audioTracks = stream.getAudioTracks();
     console.log('📹 Video tracks:', videoTracks.length);
@@ -228,11 +231,9 @@ const WebcamRecorder = forwardRef(({
     }
     
     try {
-      // Reset local chunks
       localChunksRef.current = [];
       setRecordedChunks([]);
       
-      // Use a simpler MIME type for better compatibility
       const mimeTypes = ['video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9,opus', 'video/webm'];
       let mimeType = mimeTypes[0];
       
@@ -251,15 +252,11 @@ const WebcamRecorder = forwardRef(({
       
       mediaRecorderRef.current = mediaRecorder;
       
-      // ✅ FIX: Use localChunksRef for immediate data capture
       mediaRecorder.ondataavailable = (event) => {
         console.log('📊 Data available event - size:', event.data.size);
         if (event.data.size > 0) {
-          // ✅ IMMEDIATE update using ref
           localChunksRef.current.push(event.data);
           console.log('📊 Total chunks captured:', localChunksRef.current.length);
-          
-          // Also update React state for display (optional)
           setRecordedChunks([...localChunksRef.current]);
         } else {
           console.warn('⚠️ Empty data chunk received');
@@ -295,7 +292,6 @@ const WebcamRecorder = forwardRef(({
         }, 1000);
       };
       
-      // ✅ FIX: Use localChunksRef in onstop
       mediaRecorder.onstop = async () => {
         console.log('⏹️ Recording stopped');
         console.log('📊 Total chunks captured:', localChunksRef.current.length);
@@ -303,10 +299,8 @@ const WebcamRecorder = forwardRef(({
         
         const finalDuration = recordingTime;
         
-        // Wait a moment for any pending data
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // ✅ Use localChunksRef which has ALL the data
         if (localChunksRef.current.length > 0) {
           const videoBlob = new Blob(localChunksRef.current, { 
             type: 'video/webm' 
@@ -334,7 +328,6 @@ const WebcamRecorder = forwardRef(({
         }
       };
       
-      // Request data every second
       mediaRecorder.start(1000);
       setRecorder(mediaRecorder);
       
@@ -344,21 +337,18 @@ const WebcamRecorder = forwardRef(({
     }
   };
 
-  // Pause recording
   const pauseRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.pause();
     }
   };
 
-  // Resume recording
   const resumeRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
       mediaRecorderRef.current.resume();
     }
   };
 
-  // Stop recording
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       console.log('⏹️ Stopping recording...');
@@ -390,7 +380,6 @@ const WebcamRecorder = forwardRef(({
     };
   }, [stream]);
 
-  // Format time (MM:SS)
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;

@@ -1,3 +1,4 @@
+// src/components/tabs/InterviewSession.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -23,6 +24,9 @@ const InterviewSession = () => {
   const questionTimerRef = useRef(null);
   const recognitionRef = useRef(null);
   const sessionIdRef = useRef(null);
+
+  // ✅ API URL from environment or fallback to localhost
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
   // Initialize Web Speech API
   useEffect(() => {
@@ -55,10 +59,10 @@ const InterviewSession = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:5001/api/sessions/create',
+        `${API_URL}/api/sessions/create`,
         {
           interviewId,
-          totalQuestions: 5 // You can make this dynamic
+          totalQuestions: 5
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -83,7 +87,7 @@ const InterviewSession = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5001/api/sessions/${sessionId}/start`,
+        `${API_URL}/api/sessions/${sessionId}/start`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -92,10 +96,7 @@ const InterviewSession = () => {
       setSessionStatus('in-progress');
       setLoading(false);
       
-      // Start timers
       startTimers();
-      
-      // Get first question
       getCurrentQuestion(sessionId);
     } catch (error) {
       console.error('Error starting session:', error);
@@ -110,7 +111,7 @@ const InterviewSession = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5001/api/sessions/${sessionIdRef.current}/pause`,
+        `${API_URL}/api/sessions/${sessionIdRef.current}/pause`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -133,7 +134,7 @@ const InterviewSession = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5001/api/sessions/${sessionIdRef.current}/resume`,
+        `${API_URL}/api/sessions/${sessionIdRef.current}/resume`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -143,7 +144,6 @@ const InterviewSession = () => {
       startTimers();
       setLoading(false);
       
-      // Get current question
       getCurrentQuestion(sessionIdRef.current);
     } catch (error) {
       console.error('Error resuming session:', error);
@@ -158,7 +158,7 @@ const InterviewSession = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5001/api/sessions/${sessionIdRef.current}/end`,
+        `${API_URL}/api/sessions/${sessionIdRef.current}/end`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -169,7 +169,6 @@ const InterviewSession = () => {
       stopRecording();
       setLoading(false);
       
-      // Get session summary
       getSummary(sessionIdRef.current);
     } catch (error) {
       console.error('Error ending session:', error);
@@ -183,7 +182,7 @@ const InterviewSession = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:5001/api/sessions/${sessionId}/current-question`,
+        `${API_URL}/api/sessions/${sessionId}/current-question`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -192,10 +191,8 @@ const InterviewSession = () => {
       setTotalQuestions(response.data.totalQuestions);
       setAnswer('');
       
-      // Reset question timer
       setQuestionTimer(0);
       
-      // Start question timer
       if (questionTimerRef.current) clearInterval(questionTimerRef.current);
       questionTimerRef.current = setInterval(() => {
         setQuestionTimer(prev => prev + 1);
@@ -203,7 +200,6 @@ const InterviewSession = () => {
     } catch (error) {
       console.error('Error getting current question:', error);
       if (error.response?.data?.message === 'All questions have been answered') {
-        // Auto-end session if all questions answered
         endSession();
       }
     }
@@ -220,7 +216,7 @@ const InterviewSession = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:5001/api/sessions/${sessionIdRef.current}/submit-answer`,
+        `${API_URL}/api/sessions/${sessionIdRef.current}/submit-answer`,
         { answer },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -228,13 +224,11 @@ const InterviewSession = () => {
       setLoading(false);
       
       if (response.data.isComplete) {
-        // Session completed
         setSessionStatus('completed');
         stopTimers();
         stopRecording();
         getSummary(sessionIdRef.current);
       } else {
-        // Get next question
         getCurrentQuestion(sessionIdRef.current);
       }
     } catch (error) {
@@ -249,7 +243,7 @@ const InterviewSession = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:5001/api/sessions/${sessionId}/summary`,
+        `${API_URL}/api/sessions/${sessionId}/summary`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       

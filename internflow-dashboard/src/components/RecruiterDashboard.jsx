@@ -37,6 +37,9 @@ const RecruiterDashboard = ({ user }) => {
   const [selectedForCompare, setSelectedForCompare] = useState([]);
   const [showComparison, setShowComparison] = useState(false);
 
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
   // =============================================
   // FETCH CANDIDATES
   // =============================================
@@ -51,7 +54,7 @@ const RecruiterDashboard = ({ user }) => {
         sortOrder: filters.sortOrder
       });
 
-      const response = await fetch(`http://localhost:5001/api/recruiter/candidates?${params}`, {
+      const response = await fetch(`${API_URL}/api/recruiter/candidates?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -79,7 +82,7 @@ const RecruiterDashboard = ({ user }) => {
   const fetchShortlist = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/recruiter/shortlist', {
+      const response = await fetch(`${API_URL}/api/recruiter/shortlist`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -101,7 +104,7 @@ const RecruiterDashboard = ({ user }) => {
     setLoadingDetails(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5001/api/recruiter/candidates/${candidateId}`, {
+      const response = await fetch(`${API_URL}/api/recruiter/candidates/${candidateId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -132,7 +135,7 @@ const RecruiterDashboard = ({ user }) => {
     try {
       const token = localStorage.getItem('token');
       const method = isShortlisted ? 'DELETE' : 'POST';
-      const url = `http://localhost:5001/api/recruiter/candidates/${candidateId}/shortlist`;
+      const url = `${API_URL}/api/recruiter/candidates/${candidateId}/shortlist`;
       
       const response = await fetch(url, {
         method,
@@ -283,9 +286,7 @@ const RecruiterDashboard = ({ user }) => {
             </div>
           </div>
 
-          {/* ============================================= */}
-          {/* NEW: Tab Navigation */}
-          {/* ============================================= */}
+          {/* Tab Navigation */}
           <div className="recruiter-tabs mt-4">
             <button 
               className={`recruiter-tab ${activeTab === 'candidates' ? 'active' : ''}`}
@@ -453,7 +454,6 @@ const RecruiterDashboard = ({ user }) => {
                   🏆 Candidate Performance Dashboard
                 </h5>
                 <div className="d-flex gap-2 align-items-center">
-                  {/* NEW: Compare Button */}
                   {selectedForCompare.length > 0 && (
                     <button 
                       className="btn btn-sm btn-success rounded-pill"
@@ -510,7 +510,6 @@ const RecruiterDashboard = ({ user }) => {
                           <th>Highest</th>
                           <th>Status</th>
                           <th>Shortlist</th>
-                          {/* NEW: Compare Column */}
                           <th>Compare</th>
                           <th>Actions</th>
                         </tr>
@@ -567,7 +566,6 @@ const RecruiterDashboard = ({ user }) => {
                                   <i className={`fas ${isShortlisted ? 'fa-star' : 'fa-star'}`}></i>
                                 </button>
                               </td>
-                              {/* NEW: Compare Checkbox */}
                               <td>
                                 <div className="form-check">
                                   <input
@@ -600,7 +598,7 @@ const RecruiterDashboard = ({ user }) => {
         )}
 
         {/* ============================================= */}
-        {/* NEW: SKILLS ANALYTICS TAB */}
+        {/* SKILLS ANALYTICS TAB */}
         {/* ============================================= */}
         {activeTab === 'skills' && (
           <div className="card shadow-sm mb-4">
@@ -609,7 +607,7 @@ const RecruiterDashboard = ({ user }) => {
         )}
 
         {/* ============================================= */}
-        {/* NEW: TRENDS TAB */}
+        {/* TRENDS TAB */}
         {/* ============================================= */}
         {activeTab === 'trends' && (
           <div className="card shadow-sm mb-4">
@@ -618,7 +616,7 @@ const RecruiterDashboard = ({ user }) => {
         )}
 
         {/* ============================================= */}
-        {/* NEW: COMPARISON MODAL */}
+        {/* COMPARISON MODAL */}
         {/* ============================================= */}
         {showComparison && (
           <CandidateComparison 
@@ -705,7 +703,6 @@ const RecruiterDashboard = ({ user }) => {
                         <h5>🎯 Skill Breakdown</h5>
                         <div className="skill-grid">
                           {Object.entries(candidateDetails.skills).map(([key, value]) => {
-                            // Handle both {average, count} object and plain number
                             const score = typeof value === 'object' ? (value.average || 0) : (value || 0);
                             const count = typeof value === 'object' ? (value.count || 0) : 0;
                             
@@ -811,7 +808,6 @@ const RecruiterDashboard = ({ user }) => {
                   <button 
                     className="btn btn-primary"
                     onClick={() => {
-                      const isShortlisted = shortlist.some(s => s.candidateId === selectedCandidate);
                       toggleShortlist(selectedCandidate);
                     }}
                   >

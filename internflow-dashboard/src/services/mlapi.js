@@ -1,6 +1,6 @@
 // src/services/mlApi.js
 
-const API_URL = 'http://localhost:5002';
+const API_URL = process.env.REACT_APP_ML_URL || 'http://localhost:5002';
 
 const buildFallbackResult = (features = []) => {
   const base = Array.isArray(features) && features.length ? features : [0.5, 0.1, 0.3, 0.4, 0.1, 1.2, 0.2, 0.0, 0.0, 0.0, 90.0, 0.3, 5.0, 0.5, 0.1];

@@ -1,3 +1,4 @@
+// src/components/LoginPage.jsx
 import React, { useState, useEffect } from 'react';
 import '../styles/LoginPage.css';
 
@@ -10,6 +11,9 @@ const LoginPage = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
   // Check for Google OAuth callback on page load
   useEffect(() => {
@@ -54,11 +58,11 @@ const LoginPage = ({ onLogin }) => {
 
       if (isLoginMode) {
         // LOGIN
-        url = 'http://localhost:5001/api/auth/login';
+        url = `${API_URL}/api/auth/login`;
         body = { email, password };
       } else {
         // REGISTER
-        url = 'http://localhost:5001/api/auth/register';
+        url = `${API_URL}/api/auth/register`;
         body = { name, email, password, role };
       }
 
@@ -82,7 +86,7 @@ const LoginPage = ({ onLogin }) => {
         // If the selected role is different from the user's current role, update it
         if (role !== user.role) {
           try {
-            const updateResponse = await fetch('http://localhost:5001/api/oauth/update-role', {
+            const updateResponse = await fetch(`${API_URL}/api/oauth/update-role`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -127,7 +131,7 @@ const LoginPage = ({ onLogin }) => {
   // Google Login - Direct URL with role parameter
   const handleGoogleLogin = (selectedRole) => {
     console.log('🔑 Google Login clicked with role:', selectedRole);
-    window.location.href = `http://localhost:5001/api/oauth/google?role=${selectedRole}`;
+    window.location.href = `${API_URL}/api/oauth/google?role=${selectedRole}`;
   };
 
   // Function to get the Google button text based on mode

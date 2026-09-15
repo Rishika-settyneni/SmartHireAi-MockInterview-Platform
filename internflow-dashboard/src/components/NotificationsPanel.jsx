@@ -1,4 +1,4 @@
-// internflow-dashboard/src/components/NotificationsPanel.jsx
+// src/components/NotificationsPanel.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import './NotificationsPanel.css';
 
@@ -9,13 +9,16 @@ const NotificationsPanel = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const panelRef = useRef(null);
 
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
   // =============================================
   // FETCH NOTIFICATIONS
   // =============================================
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/notifications/history?limit=20', {
+      const response = await fetch(`${API_URL}/api/notifications/history?limit=20`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -38,7 +41,7 @@ const NotificationsPanel = () => {
   const markAsRead = async (notificationId) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5001/api/notifications/read/${notificationId}`, {
+      await fetch(`${API_URL}/api/notifications/read/${notificationId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

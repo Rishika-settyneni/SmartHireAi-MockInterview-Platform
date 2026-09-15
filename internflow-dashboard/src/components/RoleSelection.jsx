@@ -1,3 +1,4 @@
+// src/components/RoleSelection.jsx
 import React, { useState } from 'react';
 import '../styles/RoleSelection.css';
 
@@ -5,6 +6,9 @@ const RoleSelection = ({ user, onRoleSelect }) => {
   const [selectedRole, setSelectedRole] = useState('USER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // ✅ API URL from environment or fallback
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
   const roles = [
     { value: 'USER', label: '🎓 Candidate', description: 'Practice mock interviews, track progress, and improve your skills' },
@@ -18,7 +22,7 @@ const RoleSelection = ({ user, onRoleSelect }) => {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5001/api/oauth/update-role', {
+      const response = await fetch(`${API_URL}/api/oauth/update-role`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
