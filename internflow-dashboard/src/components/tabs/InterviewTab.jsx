@@ -1,3 +1,4 @@
+// src/components/tabs/InterviewTab.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import WebcamRecorder from '../WebcamRecorder';
 import InterviewResults from '../InterviewResults';
@@ -133,7 +134,7 @@ const InterviewTab = ({
   };
 
   // =============================================
-  // ✅ NEW: SCORING HANDLERS
+  // SCORING HANDLERS
   // =============================================
   const handleScoringStart = () => {
     console.log('🎯 Starting interview scoring...');
@@ -145,20 +146,17 @@ const InterviewTab = ({
     console.log('Report data:', reportData);
     setScoringInProgress(false);
     setShowResults(true);
-    // Could also show notification here
   };
 
   const handleRetakeInterview = () => {
     console.log('🔄 Retaking interview');
     setShowResults(false);
     setScoringInProgress(false);
-    // Reset interview state if needed
   };
 
   const handleNavigateFromResults = (destination) => {
     console.log('Navigate to:', destination);
     if (destination === 'dashboard') {
-      // Navigate to dashboard or close results
       setShowResults(false);
     }
   };
@@ -174,32 +172,9 @@ const InterviewTab = ({
     }
   };
 
-  // Wrapper for Submit Interview
-  //
-  // IMPORTANT: this used to fire the comprehensive Module 7 scoring call
-  // (webcamRef.current.scoreInterview()) inside a blind setTimeout(..., 1000)
-  // with no relationship to whether the legacy submit had actually finished.
-  // That race meant scoreInterview() could run before the interview record
-  // existed/was updated, or could silently throw and leave the interview with
-  // only the legacy feedback shape (no performanceBreakdown) — which is why
-  // Communication/Confidence/Technical Relevance/Professionalism sometimes
-  // never showed up in History/Progress. We now await the legacy submit
-  // first, then run the comprehensive scoring, and surface failures instead
-  // of swallowing them silently.
-  // In InterviewTab.jsx - replace the handleSubmitWithRecording function
-
-  // Wrapper for Submit Interview
-  //
-  // IMPORTANT: this used to fire the comprehensive Module 7 scoring call
-  // (webcamRef.current.scoreInterview()) inside a blind setTimeout(..., 1000)
-  // with no relationship to whether the legacy submit had actually finished.
-  // That race meant scoreInterview() could run before the interview record
-  // existed/was updated, or could silently throw and leave the interview with
-  // only the legacy feedback shape (no performanceBreakdown) — which is why
-  // Communication/Confidence/Technical Relevance/Professionalism sometimes
-  // never showed up in History/Progress. We now await the legacy submit
-  // first, then run the comprehensive scoring, and surface failures instead
-  // of swallowing them silently.
+  // =============================================
+  // WRAPPER FOR SUBMIT INTERVIEW
+  // =============================================
   const handleSubmitWithRecording = async () => {
     console.log('📤 Submitting interview - stopping recording...');
     await stopRecordingAutomatically();
@@ -222,10 +197,6 @@ const InterviewTab = ({
           );
         } else {
           console.log('✅ Comprehensive scoring completed successfully');
-          // Trigger refresh of interview data to show updated feedback
-          if (onInterviewComplete) {
-            onInterviewComplete(interviewId);
-          }
         }
       } catch (error) {
         console.error('Error scoring interview:', error);
@@ -430,7 +401,7 @@ const InterviewTab = ({
               />
             </div>
 
-            {/* ✅ NEW: Show Results when scoring completes */}
+            {/* Show Results when scoring completes */}
             {showResults && interviewId && (
               <div className="results-section">
                 <InterviewResults
@@ -557,7 +528,7 @@ const InterviewTab = ({
                   </div>
                 </div>
 
-                {/* ✅ Speech Analysis Display */}
+                {/* Speech Analysis Display */}
                 {showAnalysis && speechAnalysis && (
                   <SpeechAnalysisDisplay 
                     analysis={speechAnalysis} 
@@ -658,5 +629,3 @@ const InterviewTab = ({
 };
 
 export default InterviewTab;
-
-
