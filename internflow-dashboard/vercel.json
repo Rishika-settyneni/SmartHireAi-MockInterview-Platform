@@ -1,0 +1,7 @@
+{
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
