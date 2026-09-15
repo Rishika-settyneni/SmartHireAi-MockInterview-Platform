@@ -1,9 +1,20 @@
+// backend/routes/oauth.js
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const router = express.Router();
+
+// ✅ Environment-based URLs (works in both dev and production)
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5001';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
+const OAUTH_CALLBACK_URL = process.env.OAUTH_CALLBACK_URL || `${BACKEND_URL}/api/oauth/google/callback`;
+
+console.log('🔐 OAuth Configuration:');
+console.log('   Backend URL:', BACKEND_URL);
+console.log('   Frontend URL:', FRONTEND_URL);
+console.log('   Callback URL:', OAUTH_CALLBACK_URL);
 
 // Simple in-memory store for OAuth state
 const oauthStateStore = {};
@@ -16,7 +27,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'http://localhost:5001/api/oauth/google/callback',
+      callbackURL: OAUTH_CALLBACK_URL,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -31,12 +42,10 @@ passport.use(
 
         const name = profile.displayName || email.split('@')[0];
         
-        // Check if user exists
         let user = await User.findByEmail(email);
         console.log('🔍 User found in DB:', user ? 'Yes' : 'No');
 
         if (!user) {
-          // Create new user with default role
           user = await User.create({
             name: name,
             email: email,
@@ -65,10 +74,7 @@ router.get('/google', (req, res, next) => {
   const role = req.query.role || 'USER';
   console.log('🔑 Google OAuth started with role:', role);
   
-  // Generate a random state to track this request
   const state = Math.random().toString(36).substring(7);
-  
-  // Store the role with the state
   oauthStateStore[state] = { role, timestamp: Date.now() };
   
   console.log('📝 Stored role for state:', state, '->', role);
@@ -88,12 +94,10 @@ router.get('/google/callback', (req, res, next) => {
   const state = req.query.state;
   console.log('📝 State received:', state);
   
-  // Get the role from our store
   let role = 'USER';
   if (state && oauthStateStore[state]) {
     role = oauthStateStore[state].role;
     console.log('📝 Found role in store:', role);
-    // Clean up the store
     delete oauthStateStore[state];
   } else {
     console.log('⚠️ No role found in store, using default: USER');
@@ -106,22 +110,20 @@ router.get('/google/callback', (req, res, next) => {
     
     if (err) {
       console.error('❌ Authentication error:', err);
-      return res.redirect(`http://localhost:3001/login?error=${encodeURIComponent(err.message)}`);
+      return res.redirect(`${FRONTEND_URL}/login?error=${encodeURIComponent(err.message)}`);
     }
     
     if (!user) {
       console.error('❌ No user returned');
-      return res.redirect('http://localhost:3001/login?error=no_user');
+      return res.redirect(`${FRONTEND_URL}/login?error=no_user`);
     }
     
     try {
       let finalUser = user;
       
-      // Update user role if needed
       if (role !== user.role) {
         console.log('🔄 Updating user role from', user.role, 'to', role);
         
-        // Update in database - FIXED: await the result
         const updatedUser = await User.update(user.id, { role });
         
         if (updatedUser) {
@@ -135,7 +137,6 @@ router.get('/google/callback', (req, res, next) => {
         console.log('✅ User role already correct:', user.role);
       }
       
-      // Generate JWT with the (possibly updated) role
       const token = jwt.sign(
         { 
           id: finalUser.id, 
@@ -148,8 +149,7 @@ router.get('/google/callback', (req, res, next) => {
       
       console.log('✅ JWT generated for user with role:', finalUser.role);
       
-      // Redirect to frontend
-      const frontendUrl = `http://localhost:3001/?token=${token}&user=${encodeURIComponent(
+      const frontendUrl = `${FRONTEND_URL}/?token=${token}&user=${encodeURIComponent(
         JSON.stringify({
           id: finalUser.id,
           name: finalUser.name,
@@ -164,7 +164,7 @@ router.get('/google/callback', (req, res, next) => {
       
     } catch (error) {
       console.error('❌ Callback processing error:', error);
-      // Generate JWT with original user role if update fails
+      
       const token = jwt.sign(
         { 
           id: user.id, 
@@ -175,7 +175,7 @@ router.get('/google/callback', (req, res, next) => {
         { expiresIn: process.env.JWT_EXPIRY || '7d' }
       );
       
-      const frontendUrl = `http://localhost:3001/?token=${token}&user=${encodeURIComponent(
+      const frontendUrl = `${FRONTEND_URL}/?token=${token}&user=${encodeURIComponent(
         JSON.stringify({
           id: user.id,
           name: user.name,
@@ -231,7 +231,9 @@ router.get('/test', (req, res) => {
     message: 'Google OAuth routes are working!',
     hasClientId: !!process.env.GOOGLE_CLIENT_ID,
     hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-    redirectUri: 'http://localhost:5001/api/oauth/google/callback',
+    backendUrl: BACKEND_URL,
+    frontendUrl: FRONTEND_URL,
+    callbackUrl: OAUTH_CALLBACK_URL,
   });
 });
 
